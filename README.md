@@ -64,7 +64,7 @@ This project simulates the operations of a restaurant using multithreading in C+
 ### Steps to Run
 1. **Clone the Repository**:
    ```bash
-   git clone <repository-url>
+   git clone https://github.com/ksemk/restaurant-threads
    cd restaurant-threads
    ```
 
