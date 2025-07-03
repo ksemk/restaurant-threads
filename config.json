@@ -1,0 +1,30 @@
+{
+  "tables": [
+    { "id": 1, "size": 2 },
+    { "id": 2, "size": 4 },
+    { "id": 3, "size": 10 },
+    { "id": 4, "size": 4 }
+  ],
+  "num_waiters": 1,
+  "group_size_range": { "min": 1, "max": 10 },
+  "menu": [
+    { "name": "Pasta", "prep_time_ms": 1000, "ingredients": ["noodles", "sauce"] },
+    { "name": "Pizza", "prep_time_ms": 2000, "ingredients": ["dough", "cheese", "sauce"] },
+    { "name": "Salad", "prep_time_ms": 500, "ingredients": ["lettuce", "tomato"] },
+    { "name": "Steak", "prep_time_ms": 1500, "ingredients": ["meat", "salt"] }
+  ],
+  "ingredients_stock": {
+    "noodles": 5,
+    "sauce": 10,
+    "dough": 3,
+    "cheese": 4,
+    "lettuce": 6,
+    "tomato": 6,
+    "meat": 3,
+    "salt": 10
+  },
+  "delivery_interval_ms": 5000,
+  "delivery_amount": 3,
+  "arrival_delay_range_ms": { "min": 1000, "max": 5000 },
+  "simulation_time": 100
+}
