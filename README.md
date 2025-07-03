@@ -1,48 +1,110 @@
-Scenariusz działania aplikacji emulującej restaurację (zarządzanie wielowątkowe)
-1. Sala restauracyjna – przyjmowanie gości
-   Restauracja posiada określoną liczbę stolików o różnych rozmiarach (np. 2-, 4-, 6-osobowe).
+# Restaurant Simulation Project
 
-Do restauracji przychodzą grupy klientów (wątki), które chcą zostać obsłużone.
+## Overview
+This project simulates the operations of a restaurant using multithreading in C++. It models various aspects of a restaurant, including customer arrivals, table management, order processing, kitchen operations, and ingredient restocking. The simulation is designed to demonstrate proficiency in multithreading, synchronization, and JSON-based configuration handling.
 
-Jeśli znajdzie się odpowiedni wolny stolik (rozmiar >= liczba osób w grupie), grupa jest sadzana.
+## Features
+- **Customer Arrival Simulation**: Randomly generates customer groups and attempts to seat them at available tables.
+- **Table Management**: Tracks table occupancy and assigns customer groups based on size and availability.
+- **Order Processing**: Waiters collect orders from tables and send them to the kitchen for preparation.
+- **Kitchen Operations**: Processes orders, checks ingredient availability, and prepares dishes.
+- **Ingredient Restocking**: Periodically restocks ingredients to ensure the kitchen can continue preparing orders.
+- **Logging**: Logs the state of the restaurant (tables, kitchen queue, completed orders, waiting queue, ingredient stock) to a CSV file for analysis.
 
-Jeśli nie ma odpowiedniego stolika, grupa trafia do kolejki oczekujących (np. kolejka FIFO).
+## Technologies Used
+- **C++**: Core programming language for the simulation.
+- **Multithreading**: Utilizes `std::thread` for concurrent execution of customer arrival, waiter, kitchen, and delivery operations.
+- **Synchronization**: Uses `std::mutex` and `std::condition_variable` to ensure thread-safe access to shared resources.
+- **JSON Configuration**: Reads restaurant settings (tables, menu, ingredient stock, etc.) from a JSON file using the [nlohmann/json](https://github.com/nlohmann/json) library.
+- **File I/O**: Logs simulation data to a CSV file for analysis.
 
-Po zajęciu stolika, grupa składa zamówienie u przypisanego kelnera.
+## Application Logic
+1. **Configuration Loading**:
+   - Reads the `config.json` file to initialize restaurant settings, including tables, menu items, ingredient stock, and simulation parameters.
 
-2. Kelnerzy (n wątków)
-   Każdy kelner może obsługiwać wiele grup, ale tylko jedną naraz.
+2. **Customer Arrival**:
+   - Generates random customer groups based on the configured group size range.
+   - Attempts to seat groups at available tables. If no table is available, the group is added to a waiting queue.
 
-Odbiera zamówienie od stolika i przekazuje je do kuchni (wspólna kolejka zamówień).
+3. **Waiter Operations**:
+   - Waiters collect orders from occupied tables and add them to the kitchen queue.
+   - Waiters deliver completed orders to tables and free up tables for new customer groups.
 
-Po odebraniu gotowego zamówienia z kuchni, serwuje posiłek, ale dopiero wtedy, gdy cały zestaw dań dla grupy jest gotowy.
+4. **Kitchen Operations**:
+   - Processes orders from the kitchen queue, checks ingredient availability, and prepares dishes.
+   - Requeues orders if ingredients are unavailable.
 
-Po skończonym posiłku grupa klientów opuszcza restaurację, a stolik jest oznaczany jako wolny.
+5. **Ingredient Delivery**:
+   - Periodically restocks ingredients to ensure the kitchen can continue preparing orders.
 
-3. Kuchnia – realizacja zamówień
-   W kuchni zamówienia trafiają do wspólnej kolejki. Następnie są dzielone na komponenty:
+6. **Logging**:
+   - Logs the state of the restaurant (tables, kitchen queue, completed orders, waiting queue, ingredient stock) to a CSV file every second.
 
-Główny kucharz – dania główne
+## Methods Used
+- **Multithreading**:
+  - Threads are used for customer arrival, waiter operations, kitchen processing, ingredient delivery, and logging.
+  - Synchronization is achieved using `std::mutex` and `std::condition_variable`.
 
-Kucharz rybny – dania rybne
+- **Random Number Generation**:
+  - `std::random_device` and `std::mt19937` are used to generate random values for customer group sizes, menu item selection, and arrival delays.
 
-Piekarz – pieczywo
+- **JSON Parsing**:
+  - The [nlohmann/json](https://github.com/nlohmann/json) library is used to parse the `config.json` file and load restaurant settings.
 
-(Można dodać kucharza deserowego lub sałatkowego)
+- **File Logging**:
+  - Logs simulation data to a CSV file using `std::ofstream`.
 
-Piekarz działa cały czas i piecze chleb na zapas, ale tylko do określonego limitu magazynowego.
+## Instructions to Run
+### Prerequisites
+1. **C++ Compiler**: Ensure you have a C++ compiler that supports C++17 or later (e.g., GCC, Clang, or MSVC).
+2. **Dependencies**:
+   - Install the [nlohmann/json](https://github.com/nlohmann/json) library for JSON parsing.
+   - Ensure the `config.json` file is present in the project directory.
 
-Każdy kucharz (osobny wątek) pobiera swoją część zamówień i przygotowuje dania (symulacja czasu np. sleep).
+### Steps to Run
+1. **Clone the Repository**:
+   ```bash
+   git clone <repository-url>
+   cd restaurant-threads
+   ```
 
-Po przygotowaniu, dania są buforowane per stolik. Kelner może je odebrać dopiero, gdy wszystkie części zestawu są gotowe.
+2. **Prepare the Configuration File**:
+   - Create a `config.json` file in the project directory with the following structure:
+     ```json
+     {
+       "tables": [
+         { "id": 1, "size": 4 },
+         { "id": 2, "size": 6 }
+       ],
+       "num_waiters": 3,
+       "menu": [
+         { "name": "Pizza", "prep_time_ms": 5000, "ingredients": ["Dough", "Cheese", "Tomato"] },
+         { "name": "Pasta", "prep_time_ms": 4000, "ingredients": ["Pasta", "Cheese", "Sauce"] }
+       ],
+       "group_size_range": { "min": 2, "max": 6 },
+       "arrival_delay_range_ms": { "min": 1000, "max": 5000 },
+       "simulation_time": 60,
+       "ingredients_stock": { "Dough": 10, "Cheese": 10, "Tomato": 10, "Pasta": 10, "Sauce": 10 },
+       "delivery_interval_ms": 10000,
+       "delivery_amount": 5
+     }
+     ```
 
-Mechanizmy synchronizacji i struktury danych
-Muteksy/semafory/monitory do synchronizacji dostępu do stolików, kolejki zamówień i kuchni.
+3. **Build the Project**:
+   - Compile the project using your preferred C++ compiler:
+     ```bash
+     g++ -std=c++17 -pthread -o restaurant_simulation main.cpp
+     ```
 
-Kolejki blokujące dla oczekujących klientów i zamówień w kuchni.
+4. **Run the Simulation**:
+   - Execute the compiled binary:
+     ```bash
+     ./restaurant_simulation
+     ```
 
-Mapa stolików z informacją o dostępności (np. Map<Stolik, boolean>).
+5. **View Logs**:
+   - Check the `restaurant_log.csv` file in the project directory for simulation data.
 
-Bufory per zamówienie/grupę klientów, synchronizujące moment, gdy wszystkie dania są gotowe.
-
-Limitowany magazyn pieczywa – np. BlockingQueue z maksymalną pojemnością.
+### Notes
+- The simulation runs indefinitely unless configured otherwise. To stop the simulation, terminate the program manually.
+- Ensure the `config.json` file is correctly formatted to avoid JSON parsing errors.
